@@ -1,0 +1,26 @@
+name: imageshift
+description: Fully local image conversion for Android and Windows.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image: 4.9.2
+  path: 1.9.1
+  file_selector: 1.1.0
+  desktop_drop: 0.8.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - pubspec.yaml
+    - docs/third_party/
