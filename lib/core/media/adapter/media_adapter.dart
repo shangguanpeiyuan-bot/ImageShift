@@ -11,10 +11,12 @@ class PreparedMedia {
     this.primaryPath, {
     List<String> additionalPaths = const [],
     this.suggestedName,
+    this.cleanup,
   }) : additionalPaths = List.unmodifiable(additionalPaths);
   final String primaryPath;
   final List<String> additionalPaths;
   final String? suggestedName;
+  final Future<void> Function()? cleanup;
 }
 
 abstract interface class MediaAdapter {
