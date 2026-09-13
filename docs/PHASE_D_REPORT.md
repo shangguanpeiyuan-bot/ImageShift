@@ -1,6 +1,6 @@
 # Phase D 实际进度与交付
 
-日期：2026-09-13。**D 尚未全部完成，不能宣称已经公开发布。** 已完成构建、Windows 安装验收、源码 push、MIT 授权和 Android 正式签名；发行附件正在准备上传 GitHub Release。
+日期：2026-09-13。**v1.0.0 发行交付已完成并公开发布。** 构建、Windows 安装验收、源码 push、MIT 授权、Android 正式签名与附件校验均完成。下文明确保留尚未执行的设备验收，不把公开发布等同于所有环境测试通过。
 
 ## 已执行
 
@@ -32,11 +32,11 @@ artifacts/phase-d：pub-get.log、analyze.log、test.log、windows-release.log�
 
 源码、文档及测试已整理为本地提交范围；检查排除了 build、artifacts、local.properties、私钥/keystore 与本机 SDK 配置。上游许可证保留原文空白，Git 属性仅免除这些许可证的空白检查。Git 提交哈希以实际 git log 为准；没有将构建产物放入源码提交。
 
-## 已知限制与剩余步骤
+## 已知限制与密钥维护
 
 1. 用户已明确选择 **MIT**；根 LICENSE、应用许可页、Android assets、Windows 安装目录和 ZIP 均包含许可。安装后 LICENSE 哈希与源码相同。
 2. 用户已明确授权生成专用发布密钥。密钥在当前用户 LOCALAPPDATA/ImageShiftSigning，目录 ACL 仅当前用户与 SYSTEM，密码用当前 Windows 用户 DPAPI 保护；没有密码/私钥进入 Git、日志或附件。后续更新必须沿用此密钥。尚未创建离机备份，迁移或重装 Windows 前须安全备份密钥和可恢复的密码。
-3. GitHub 浏览器授权后，Credential Manager 登录进程退出 0，账号列表确认 shangguanpeiyuan-bot。随后 `git push -u origin main` 实际成功，源码提交 18193a2 已推送，main 跟踪 origin/main。此前缺凭据的错误属于授权前尝试，不代表本次授权失败。v1.0.0 Release 将上传验证过的 APK、Installer、完整 ZIP 和 SHA256SUMS；发布状态见下方后续记录。不修改 origin，不 force push。
+3. GitHub 浏览器授权后，Credential Manager 登录进程退出 0，账号列表确认 shangguanpeiyuan-bot。随后 push 实际成功，main 跟踪 origin/main。此前缺凭据的错误属于授权前尝试，不代表本次授权失败。正式 v1.0.0 标签指向 478c2d2a4ab447a6fdf98d237ce843c2175fcf6a，包含 MIT 应用与发行代码；后续仅补充发行记录文档。不修改 origin，不 force push。
 4. **Android 无真机或 AVD**，SAF、真实触摸/系统返回/缓存回收和实际手机内存仍未验收。此缺口不等于编译失败，亦不能称为设备测试通过。
 5. desktop_drop 旧 KGP 与 SDK XML 版本差异仍有非阻塞警告；未来 Flutter 升级须复查。Windows CRT 应用本地部署由发行者跟进安全更新。
 6. 8K 超过 24 MP 上限会明确拒绝。性能与格式变体限制见 C/A/B 报告；P2 文件夹/剪贴板/系统通知未实现，不作为 v1 已有能力。
@@ -47,4 +47,12 @@ artifacts/phase-d：pub-get.log、analyze.log、test.log、windows-release.log�
 - [Microsoft C++ 部署示例](https://learn.microsoft.com/en-us/cpp/windows/deployment-examples?view=msvc-170)
 - [Android 签名说明](https://developer.android.com/studio/publish/app-signing)
 
-下一次继续应从签名/许可/登录的实际状态接续，不能重新 clone、安装 Flutter 或重复整个工程开发。
+## GitHub Release 实际结果
+
+- 地址：[ImageShift v1.0.0](https://github.com/shangguanpeiyuan-bot/ImageShift/releases/tag/v1.0.0)，Release ID 387935714，draft=false。
+- 发布时间：2026-09-13 15:05:37 UTC（香港时间 23:05:37）。上传先在草稿完成，逐个验证 GitHub 返回的 size 与 SHA-256 digest 一致后才公开。
+- 附件：专用签名 APK、Windows Setup、完整 Windows ZIP、SHA256SUMS.txt，全部上传成功。checksum 文件为 301 字节，SHA-256 CA6FDB3C3ACA7C74900D513F44CB65F585A8C27CA9C458B67A2873D9F42D09EC；其他附件哈希见前表与 Android 记录。
+- 公开后通过不带凭据的 GitHub API 再读 v1.0.0，确认页面已公开、四个附件及 digest 正确；从 origin 取得标签后确认提交 SHA 一致。
+- Android 密钥/密码/DPAPI 文件、unsigned APK、对齐暂存、SDK 路径配置均未上传；发行目录使用明确的四文件白名单，不上传整个目录。
+
+本轮完成后停止。未来更新应读取当前规范与报告，沿用发布密钥；不得重新 clone、重装环境或覆盖已发布标签。
