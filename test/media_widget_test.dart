@@ -5,8 +5,44 @@ import 'package:imageshift/ui/pages/media_workbench_page.dart';
 import 'package:imageshift/core/media/backend/ffmpeg_backend.dart';
 import 'package:imageshift/core/media/model/media.dart';
 import 'package:imageshift/platform/file_access.dart';
+import 'package:imageshift/application/media_library.dart';
+import 'package:imageshift/core/media/model/transcode_options.dart';
 
 void main() {
+  test('preset summary reports incompatible entries without changing them', () {
+    final c = MediaWorkspaceController(
+      ffmpeg: FfmpegBackend(
+        ffmpegPath: '',
+        ffprobePath: '',
+        verifiedEncoders: {'aac', 'libopenh264'},
+      ),
+    );
+    addTearDown(c.dispose);
+    final entry =
+        MediaEntry('silent', const ImportedFile('silent.mp4', 'silent'))
+          ..probe = MediaProbe(
+            kind: MediaKind.video,
+            format: 'mp4',
+            bytes: 1,
+            streams: [
+              const MediaStreamInfo(index: 0, type: 'video', codec: 'h264'),
+            ],
+          )
+          ..outputFormat = 'mp4';
+    c.entries.add(entry);
+    c.applyPreset(
+      const MediaPreset(
+        id: 'audio',
+        name: '音频参数',
+        kind: MediaKind.video,
+        format: 'mp4',
+        options: TranscodeOptions(sampleRate: 48000),
+      ),
+    );
+    expect(entry.options.sampleRate, isNull);
+    expect(c.message, contains('已应用 0 项'));
+    expect(c.message, contains('1 项不兼容'));
+  });
   for (final size in [
     const Size(320, 520),
     const Size(844, 270),

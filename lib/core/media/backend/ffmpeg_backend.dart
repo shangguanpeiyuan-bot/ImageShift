@@ -197,6 +197,7 @@ class FfmpegBackend implements MediaBackend {
         '当前文件没有可调整的音频流。',
       );
     }
+    final explicitlyForced = forceTranscode;
     forceTranscode =
         forceTranscode || options.changesVideo || options.changesAudio;
     if (audioEncoders.containsKey(target)) {
@@ -275,14 +276,32 @@ class FfmpegBackend implements MediaBackend {
       throw const MediaError(MediaErrorCode.invalidParameters, '所选编码与容器不兼容。');
     }
     final audio = target == 'webm' ? 'libopus' : 'aac';
+    bool compatibleStreams(String type) => canRemux(
+      MediaProbe(
+        kind: input.kind,
+        format: input.format,
+        bytes: input.bytes,
+        streams: input.streams.where((s) => s.type == type).toList(),
+      ),
+      target,
+    );
+    final copyVideo =
+        !explicitlyForced &&
+        !options.changesVideo &&
+        compatibleStreams('video');
+    final copyAudio =
+        !explicitlyForced &&
+        !options.changesAudio &&
+        compatibleStreams('audio');
+    final hasAudio = input.streams.any((s) => s.type == 'audio');
     final alignment = codec == 'hevc' ? 8 : 2;
     final filters = [
       if (options.width != null)
         'scale=${options.width}:${options.height}:force_original_aspect_ratio=decrease:force_divisible_by=2',
       'pad=ceil(iw/$alignment)*$alignment:ceil(ih/$alignment)*$alignment:(ow-iw)/2:(oh-ih)/2',
     ];
-    if (!verifiedEncoders.contains(video) ||
-        !verifiedEncoders.contains(audio)) {
+    if ((!copyVideo && !verifiedEncoders.contains(video)) ||
+        (hasAudio && !copyAudio && !verifiedEncoders.contains(audio))) {
       throw const MediaError(
         MediaErrorCode.encoderUnavailable,
         '当前版本没有可用的转码编码器。',
@@ -294,23 +313,25 @@ class FfmpegBackend implements MediaBackend {
       '-map',
       '0:a?',
       '-c:v',
-      video,
-      '-pix_fmt',
-      'yuv420p',
-      '-b:v',
-      '${options.videoKbps ?? 4000}k',
-      '-threads',
-      '2',
-      if (codec == 'av1') ...['-cpu-used', '6'],
-      '-vf',
-      filters.join(','),
-      if (options.framesPerSecond != null) ...[
-        '-r',
-        '${options.framesPerSecond}',
+      copyVideo ? 'copy' : video,
+      if (!copyVideo) ...[
+        '-pix_fmt',
+        'yuv420p',
+        '-b:v',
+        '${options.videoKbps ?? 4000}k',
+        '-threads',
+        '2',
+        if (codec == 'av1') ...['-cpu-used', '6'],
+        '-vf',
+        filters.join(','),
+        if (options.framesPerSecond != null) ...[
+          '-r',
+          '${options.framesPerSecond}',
+        ],
       ],
       '-c:a',
-      audio,
-      ..._audioOptions(options),
+      copyAudio ? 'copy' : audio,
+      if (!copyAudio) ..._audioOptions(options),
     ];
   }
 
@@ -327,22 +348,29 @@ class FfmpegBackend implements MediaBackend {
     CancellationToken cancellation,
     ProgressCallback onProgress,
   ) async {
-    var args = encodingArguments(
-      input,
-      job.outputFormat,
-      forceTranscode: job.forceTranscode,
-      options: job.transcode,
-    );
+    var args = job.audioPath != null
+        ? <String>[]
+        : encodingArguments(
+            input,
+            job.outputFormat,
+            forceTranscode: job.forceTranscode,
+            options: job.transcode,
+          );
     if (job.audioPath case final audioPath?) {
-      if (job.forceTranscode ||
-          job.transcode.changesAudio ||
-          job.transcode.changesVideo) {
+      final audio = await probe(audioPath, cancellation);
+      if (!videoFormats.contains(job.outputFormat) ||
+          input.streams.where((s) => s.type == 'video').length != 1 ||
+          input.streams.any(
+            (s) =>
+                (s.type != 'video' && s.type != 'audio') || s.attachedPicture,
+          ) ||
+          audio.kind != MediaKind.audio ||
+          audio.streams.where((s) => s.type == 'audio').length != 1) {
         throw const MediaError(
-          MediaErrorCode.invalidParameters,
-          '双流缓存合并请使用无损快速转换；合并后可另行转码。',
+          MediaErrorCode.unsupportedCodec,
+          '替换音轨需要单视频流和单音轨；字幕或附加流尚不能可靠保留。',
         );
       }
-      final audio = await probe(audioPath, cancellation);
       final combined = MediaProbe(
         kind: MediaKind.video,
         format: input.format,
@@ -352,14 +380,24 @@ class FfmpegBackend implements MediaBackend {
           ...audio.streams.where((s) => s.type == 'audio'),
         ],
       );
-      if (audio.kind != MediaKind.audio ||
-          !canRemux(combined, job.outputFormat)) {
-        throw const MediaError(
-          MediaErrorCode.unsupportedCodec,
-          '当前音视频流无法无损合并到目标容器。',
-        );
+      final combinedArgs = encodingArguments(
+        combined,
+        job.outputFormat,
+        forceTranscode: job.forceTranscode,
+        options: job.transcode,
+      );
+      // Input 0 owns the video, input 1 supplies the explicitly selected audio.
+      args = ['-map', '0:v:0', '-map', '1:a:0'];
+      for (var i = 0; i < combinedArgs.length; i++) {
+        if (combinedArgs[i] == '-map') {
+          i++;
+        } else {
+          args.add(combinedArgs[i]);
+        }
       }
-      args = ['-map', '0:v:0', '-map', '1:a:0', '-c', 'copy'];
+      if (input.duration case final duration? when duration > Duration.zero) {
+        args.addAll(['-t', '${duration.inMicroseconds / 1000000}']);
+      }
     }
     final temp = await TempFileManager.create(
       job.outputDirectory,

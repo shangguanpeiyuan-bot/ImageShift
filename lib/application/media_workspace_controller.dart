@@ -28,7 +28,20 @@ class MediaEntry {
   MediaEntry(this.id, this.file);
   final String id;
   final ImportedFile file;
-  MediaProbe? probe;
+  MediaProbe? probe, audioProbe;
+  String? replacementAudioName;
+  MediaProbe? get effectiveProbe => audioProbe == null || probe == null
+      ? probe
+      : MediaProbe(
+          kind: MediaKind.video,
+          format: probe!.format,
+          bytes: probe!.bytes + audioProbe!.bytes,
+          duration: probe!.duration,
+          streams: [
+            ...probe!.streams.where((s) => s.type == 'video'),
+            ...audioProbe!.streams.where((s) => s.type == 'audio'),
+          ],
+        );
   MediaBackend? backend;
   String? audioPath, error, published;
   String outputFormat = '';
@@ -160,6 +173,7 @@ class MediaWorkspaceController extends ChangeNotifier {
             final prepared = await BilibiliCacheAdapter(ffmpeg!)
                 .prepare(file.path, _token!);
             entry.audioPath = prepared.additionalPaths.single;
+            entry.audioProbe = await ffmpeg!.probe(entry.audioPath!, _token!);
             // Prepared primary source is kept separately from the user-visible directory.
             final probe = await ffmpeg!.probe(prepared.primaryPath, _token!);
             entry.probe = probe;
@@ -306,7 +320,7 @@ class MediaWorkspaceController extends ChangeNotifier {
     if (entry.probe?.kind == MediaKind.image) return candidates;
     return candidates.where((format) {
       try {
-        ffmpeg!.encodingArguments(entry.probe!, format);
+        ffmpeg!.encodingArguments(entry.effectiveProbe!, format);
         return true;
       } on MediaError {
         return false;
@@ -325,6 +339,95 @@ class MediaWorkspaceController extends ChangeNotifier {
     refresh();
   }
 
+  Future<void> chooseReplacementAudio(MediaEntry entry) async {
+    if (busy || entry.finished || entry.probe?.kind != MediaKind.video) return;
+    List<ImportedFile> picked;
+    try {
+      picked = await files.pickMedia();
+    } catch (_) {
+      message = '无法打开音频选择器，请重试。';
+      refresh();
+      return;
+    }
+    if (picked.isEmpty) return;
+    if (picked.length != 1) {
+      await files.releaseCache(picked.map((f) => f.path));
+      message = '每个视频请选择一个替换音频文件。';
+      refresh();
+      return;
+    }
+    busy = true;
+    _token = CancellationToken();
+    refresh();
+    try {
+      await _setReplacementAudio(entry, picked.single);
+      await saveRecovery();
+      message = '已选择替换音轨；原视频不变，音频超出视频时长的部分会截去。';
+    } catch (error) {
+      await files.releaseCache([picked.single.path]);
+      message = error is MediaError ? error.message : '无法读取替换音频。';
+    } finally {
+      busy = false;
+      refresh();
+    }
+  }
+
+  Future<void> _setReplacementAudio(MediaEntry entry, ImportedFile file) async {
+    if (file.error != null) {
+      throw MediaError(MediaErrorCode.permissionDenied, file.error!);
+    }
+    final source = entry.probe!;
+    if (source.streams.where((s) => s.type == 'video').length != 1 ||
+        source.streams.any(
+          (s) => (s.type != 'video' && s.type != 'audio') || s.attachedPicture,
+        )) {
+      throw const MediaError(
+        MediaErrorCode.unsupportedCodec,
+        '含字幕、附加流或多个视频流的文件暂不能替换音轨。',
+      );
+    }
+    final audio = await ffmpeg!.probe(file.path, _token!);
+    if (audio.kind != MediaKind.audio ||
+        audio.streams.where((s) => s.type == 'audio').length != 1) {
+      throw const MediaError(
+        MediaErrorCode.unsupportedFormat,
+        '请选择只有一条音轨的音频文件。',
+      );
+    }
+    final combined = MediaProbe(
+      kind: MediaKind.video,
+      format: source.format,
+      bytes: source.bytes + audio.bytes,
+      streams: [
+        ...source.streams.where((s) => s.type == 'video'),
+        ...audio.streams.where((s) => s.type == 'audio'),
+      ],
+    );
+    final formats = FfmpegBackend.videoFormats.where((format) {
+      try {
+        ffmpeg!.encodingArguments(combined, format);
+        return true;
+      } on MediaError {
+        return false;
+      }
+    }).toList();
+    if (formats.isEmpty) {
+      throw const MediaError(
+        MediaErrorCode.unsupportedCodec,
+        '当前编码器没有可用的合并输出格式。',
+      );
+    }
+    final old = entry.replacementAudioName == null ? null : entry.audioPath;
+    entry.audioPath = file.path;
+    entry.audioProbe = audio;
+    entry.replacementAudioName = file.name;
+    entry.options = const TranscodeOptions();
+    if (!formats.contains(entry.outputFormat)) {
+      entry.outputFormat = formats.first;
+    }
+    if (old != null && old != file.path) await files.releaseCache([old]);
+  }
+
   void cancel() {
     if (_restoring) _restoreCancelled = true;
     _token?.cancel();
@@ -336,7 +439,14 @@ class MediaWorkspaceController extends ChangeNotifier {
     entries.remove(entry);
     _preparedInputs.remove(entry.id);
     unawaited(_preparedCleanup.remove(entry.id)?.call());
-    unawaited(files.releaseCache([entry.file.path]).catchError((Object _) {}));
+    unawaited(
+      files
+          .releaseCache([
+            entry.file.path,
+            if (entry.replacementAudioName != null) entry.audioPath!,
+          ])
+          .catchError((Object _) {}),
+    );
     unawaited(saveRecovery());
     // Removing a row does not delete any original or completed output.
     refresh();
@@ -493,35 +603,45 @@ class MediaWorkspaceController extends ChangeNotifier {
     refresh();
   }
 
-  void _apply(MediaEntry entry, MediaPreset preset) {
-    if (!outputs(entry).contains(preset.format)) return;
+  bool _apply(MediaEntry entry, MediaPreset preset) {
+    if (!outputs(entry).contains(preset.format)) return false;
     if (entry.probe!.kind != MediaKind.image) {
       try {
         ffmpeg!.encodingArguments(
-          entry.probe!,
+          entry.effectiveProbe!,
           preset.format,
           options: preset.options,
         );
       } on MediaError {
         message = '该预设与当前媒体流或平台编码器不兼容，已保留原参数。';
-        return;
+        return false;
       }
     }
     entry.outputFormat = preset.format;
     entry.options = preset.options;
     entry.resize = preset.resize;
     entry.jpegQuality = preset.jpegQuality;
+    return true;
   }
 
   void applyPreset(MediaPreset preset) {
     if (busy) return;
     _activePresets[preset.kind] = preset;
+    var applied = 0;
+    var skipped = 0;
     for (final entry in entries.where(
       (e) => !e.finished && e.probe?.kind == preset.kind,
     )) {
-      _apply(entry, preset);
+      if (_apply(entry, preset)) {
+        applied++;
+      } else {
+        skipped++;
+      }
     }
-    message = '已应用预设：${preset.name}，下一次导入同类媒体也会使用。';
+    message =
+        '预设 ${preset.name}：已应用 $applied 项'
+        '${skipped == 0 ? '' : '，$skipped 项不兼容，保留原参数'}。'
+        '后续导入的同类媒体通过兼容检查后也会使用。';
     unawaited(saveRecovery());
     refresh();
   }
@@ -538,6 +658,10 @@ class MediaWorkspaceController extends ChangeNotifier {
               'name': entry.file.name,
               'preset': presetFor(entry, '未完成任务').toJson(),
               'output': locationJson(output),
+              if (entry.replacementAudioName != null) ...{
+                'audioPath': entry.audioPath,
+                'audioName': entry.replacementAudioName,
+              },
             },
       ]);
     } catch (_) {
@@ -568,6 +692,22 @@ class MediaWorkspaceController extends ChangeNotifier {
             .where((e) => p.equals(e.file.path, path))
             .firstOrNull;
         if (entry?.probe != null) {
+          if (item['audioPath'] case final String audioPath) {
+            // Never silently resume with the original audio if replacement vanished.
+            try {
+              await _setReplacementAudio(
+                entry!,
+                ImportedFile(
+                  audioPath,
+                  item['audioName'] as String? ?? p.basename(audioPath),
+                ),
+              );
+            } catch (_) {
+              _removeRecoveredEntry(entry!);
+              message = '替换音轨不可访问，该任务未恢复；请重新选择视频与音频。';
+              continue;
+            }
+          }
           _apply(
             entry!,
             MediaPreset.fromJson(
@@ -589,6 +729,12 @@ class MediaWorkspaceController extends ChangeNotifier {
     recoverable = [];
     await recovery?.clear();
     refresh();
+  }
+
+  void _removeRecoveredEntry(MediaEntry entry) {
+    entries.remove(entry);
+    _preparedInputs.remove(entry.id);
+    unawaited(_preparedCleanup.remove(entry.id)?.call());
   }
 
   static String _mime(String format) => switch (format) {

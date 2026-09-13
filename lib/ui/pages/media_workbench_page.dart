@@ -275,10 +275,12 @@ class MediaWorkbenchPage extends StatelessWidget {
               Text(
                 '${probe.format.toUpperCase()} · ${(probe.bytes / 1048576).toStringAsFixed(2)} MiB'
                 '${probe.width == null ? '' : ' · ${probe.width} × ${probe.height}'}'
-                '${probe.duration == null ? '' : ' · ${probe.duration!.inSeconds} 秒'}',
+                '${probe.duration == null ? '' : ' · ${(probe.duration!.inMilliseconds / 1000).toStringAsFixed(1)} 秒'}',
                 style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               ),
             const SizedBox(height: 10),
+            if (entry.replacementAudioName != null)
+              Text('替换音轨：${entry.replacementAudioName}（保持视频时长，较短音轨结束后无音频）'),
             Wrap(
               spacing: 16,
               runSpacing: 8,
@@ -320,7 +322,17 @@ class MediaWorkbenchPage extends StatelessWidget {
                         : theme.colorScheme.error,
                   ),
                 ),
-                if (entry.probe != null && entry.audioPath == null)
+                if (entry.probe?.kind == MediaKind.video &&
+                    (entry.audioPath == null ||
+                        entry.replacementAudioName != null))
+                  TextButton.icon(
+                    onPressed: c.busy || entry.finished
+                        ? null
+                        : () => c.chooseReplacementAudio(entry),
+                    icon: const Icon(Icons.audio_file_outlined),
+                    label: const Text('替换音轨'),
+                  ),
+                if (entry.probe != null)
                   TextButton.icon(
                     onPressed: c.busy || entry.finished
                         ? null

@@ -22,7 +22,9 @@ class MediaOptionsDialog extends StatefulWidget {
 class _MediaOptionsDialogState extends State<MediaOptionsDialog> {
   late final entry = widget.entry;
   late final image = entry.probe!.kind == MediaKind.image;
-  late final hasAudio = entry.probe!.streams.any((s) => s.type == 'audio');
+  late final hasAudio = entry.effectiveProbe!.streams.any(
+    (s) => s.type == 'audio',
+  );
   late final video =
       entry.probe!.kind == MediaKind.video &&
       FfmpegBackend.videoFormats.contains(entry.outputFormat);
