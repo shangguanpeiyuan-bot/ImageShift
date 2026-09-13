@@ -1,5 +1,7 @@
 # Phase A 依赖与格式能力审计
 
+2026-09-14 媒体升级增量：旧章节保留为历史。当前增加固定 libvips_ffi 0.1.2+8.16.0、Windows 0.1.0+8.17.3、API 0.1.3+8.16.0、ffi 2.2.0（原有传递版本）；Flutter SDK integration_test 仅 dev。FFmpeg 为固定 Windows shared bundle 与 Android Maven AAR，不从系统 PATH 猜测。版本、SHA-256、来源/许可和真实平台差异见 THIRD_PARTY_COMPONENTS、ANDROID_MEDIA_BACKEND、WINDOWS_MEDIA_BACKEND、MEDIA_FORMAT_SUPPORT；锁文件未升级 archive 4.2.0。原生组合完整对应源码材料仍是公开分发前缺口。
+
 核查日期：2026-09-13。依据：pub.dev 当前 API/页面、下载后实际 package_config 定位的源码、pubspec.lock，以及本项目自动测试。下列“验证”均指本机 Windows 上 Flutter 测试，不代表 Android 真机或双平台 Release Build 已验收。
 
 ## 1. 选择与版本

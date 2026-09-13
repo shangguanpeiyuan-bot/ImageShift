@@ -33,4 +33,10 @@
 
 Windows libvips 8.17.3 顺序读取、关闭 operation cache、2 native threads。JPEG/PNG/TIFF 100MP 峰值约 55–63 MiB；100MP WebP 约 801 MiB，说明 WebP 解码仍可能需要全图内存，不宣称所有格式恒定内存。旧 JPEG 路径即使最终超限拒绝，也在头部探测期间产生高峰值，原生路径改善了这个问题。
 
-尚未验收：HEIC/AVIF、真实 P3/CMYK/ICC 素材、Android 设备性能、1GB remux、前台服务、硬件编码。主 UI 尚未切换到原生路径，不能把本报告写成用户界面已支持 100MP。
+媒体工作台已接入原生图片路径；旧图片工具保持兼容引擎。尚未验收：HEIC/AVIF、真实 P3/CMYK/ICC 素材、Android 设备性能、前台服务设备行为、硬件编码和新界面大图实测。
+
+## 约 1 GiB 视频流式转封装
+
+tool/benchmark_remux.ps1 在同一机器生成带噪声的 H.264 短片，再重复实际媒体包形成完整 MKV（非 sparse）。输入 1,076,022,432 B，输出 MP4 1,076,029,170 B，时长 286.6 秒，copy 耗时 950 ms，FFmpeg 峰值 Working Set 24,150,016 B，CPU 1,296.875 ms。输出 ffprobe 与完整 FFmpeg 解码通过。记录位于 artifacts/media-upgrade/large-video/result.json。
+
+这是原生 FFmpeg 进程测量，未计 Flutter UI 总内存；输入刚生成，OS 缓存可能显著影响耗时，不作为磁盘冷读或真实长片的通用 KPI。两份大文件总计约 2 GiB，保留于忽略目录，不进入 Git。

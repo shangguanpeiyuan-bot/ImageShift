@@ -60,6 +60,10 @@ Windows 运行需要完整构建目录中的 DLL/data，不能只复制 exe。�
 
 Windows 打包脚本为 tool/package_windows.ps1，传入实际 Inno Setup ISCC.exe 与 Visual Studio 可再分发 CRT 目录，自动包含完整 Release 和 DLL。Android 构建不再回退到 debug signing；已使用用户确认的仓库外专用密钥签名，ImageShift-v1.0.0-Android.apk 的 APK v2/v3 签名与 16 KB 对齐检查通过。后续更新必须使用相同密钥，不得重新生成替换。GitHub 登录及源码 push 已成功。
 
+媒体升级尚未发行，进度见 [续接记录](docs/MEDIA_UPGRADE_PROGRESS.md)。当前打包脚本还要求显式传入 `-ArtifactLabel` 和 `-OutputDirectory`（必须为本仓库 artifacts 内的新目录），拒绝覆盖已有 ZIP/Installer。`-IsccPath`、`-CrtDirectory` 均应从实际安装读取，不复制别人的本机路径。运行中的 ImageShift 会阻止安装替换；先结束任务并关闭应用。开发验证 APK 未签名，与上述已发布 v1.0.0 签名 APK 有别。
+
+集成测试之后进行 Release 构建时保留默认 pub 步骤，不加 `--no-pub`：当前 Flutter 在禁用 pub 时也跳过平台插件注册表刷新，可能把仅供测试的插件残留到 Release。Flutter 的测试、检查和构建串行执行。
+
 ## 结构
 
 ```text

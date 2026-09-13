@@ -46,3 +46,5 @@ Release 合并 Manifest 无 INTERNET 权限。SAF 媒体导入用流式拷贝，
 - Android AAR 虽列出 libvpx-vp9，其产物在完整解码中失败：`RGB not supported in profile 0`。此包的 Android VP9 编码被禁用，WebM 改为通过实测的 AV1；Windows VP9 不受影响。根因尚未确定，不把列出的 encoder 当作已验证能力。硬件编码均未开放。
 
 另一个后台测试通过：服务开始后以 adb 按 Home，两个各 8 秒的本地 FFmpeg 命令顺序完成。`android-background-device-test.log` 记录两个完成标记；`android-background-service.txt` 记录运行中的 MediaProcessingService、startForegroundCount=1。结束后服务列表为空。仍未证明真机省电策略、长时间任务、通知按钮或 SAF 提供程序兼容性。
+
+新增 integration_test 后，Release 先连续两次在 Java registrant 中引用 dev 插件失败。实际 SDK 的 `regeneratePlatformSpecificToolingIfApplicable` 在 `shouldRunPub == false` 时直接返回；原因不是单靠避免并行就能修复。改用 `flutter build apk --release` 后成功（android-upgrade-release4.log，15.0 秒，显示 142.2 MB），CI 同步保留此刷新步骤；未修改 SDK、生成 Java 或签名文件。该快照仍早于后续替换音轨改动，不能冒充最终产物。
