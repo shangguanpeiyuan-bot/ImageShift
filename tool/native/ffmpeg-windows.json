@@ -1,0 +1,66 @@
+{
+  "component": "FFmpeg",
+  "version": "n9.0.1-29-gad500d59cb-20260913",
+  "sourceCommit": "ad500d59cb6e0126add4fcb95afb4e2557c4292c",
+  "source": "https://github.com/FFmpeg/FFmpeg",
+  "distribution": "https://github.com/BtbN/FFmpeg-Builds",
+  "target": "windows-x64",
+  "license": "LGPL-3.0-or-later",
+  "gpl": false,
+  "nonfree": false,
+  "linkage": "shared",
+  "download": {
+    "name": "ffmpeg-n9.0.1-29-gad500d59cb-win64-lgpl-shared-9.0.zip",
+    "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-13-14-50/ffmpeg-n9.0.1-29-gad500d59cb-win64-lgpl-shared-9.0.zip",
+    "digest": "sha256:536d71dba608d9c61167f0fae8e286f6784d037f9d6a8748d950e549470db39c",
+    "size": 76400244
+  },
+  "configure": "configuration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-version3 --disable-debug --enable-shared --disable-static --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --disable-libxcb --disable-xlib --disable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --disable-avisynth --enable-chromaprint --disable-libdavs2 --disable-libdvdread --disable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --disable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --disable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --disable-libvidstab --enable-libvvenc --disable-whisper --disable-libx264 --disable-libx265 --disable-libxavs2 --disable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20260913",
+  "files": [
+    {
+      "name": "avcodec-63.dll",
+      "bytes": 90356736,
+      "sha256": "ad613a7f4b0e437884c1a45bd25457ea1abcad21c43d925c71bf95a1bd172ddc"
+    },
+    {
+      "name": "avdevice-63.dll",
+      "bytes": 4047872,
+      "sha256": "5cd19a431ee7f162a03477863dade9eda0c0726474d4874b5711e4888ed39bb8"
+    },
+    {
+      "name": "avfilter-12.dll",
+      "bytes": 30806016,
+      "sha256": "831036d04746af16ba2702e30736fefb68fdd9e2fc0051823049670c685674ca"
+    },
+    {
+      "name": "avformat-63.dll",
+      "bytes": 22668800,
+      "sha256": "795966f5f44239286171b6564818a3208c93e18178a5719a6a5409827130fae7"
+    },
+    {
+      "name": "avutil-61.dll",
+      "bytes": 3014144,
+      "sha256": "ff04bb96aa770a0a128adcf6edccec54d5b47c12a33a219c5250c837f2f9423a"
+    },
+    {
+      "name": "ffmpeg.exe",
+      "bytes": 538112,
+      "sha256": "9bf9b13f4edc6967cbcb76f8c5a37a3c418d7f95017c7f4d0337f91cf76ceee3"
+    },
+    {
+      "name": "ffprobe.exe",
+      "bytes": 228864,
+      "sha256": "bf1e4333c289f537faf597f1d9135c3e04026548c9c908ef6d2e85cfb467ee61"
+    },
+    {
+      "name": "swresample-7.dll",
+      "bytes": 733696,
+      "sha256": "00ce2899f8601d8b67849e3506e5617e57f5d3335ee5750c4fc17a26a8238370"
+    },
+    {
+      "name": "swscale-10.dll",
+      "bytes": 2330112,
+      "sha256": "530496f9be07aadbcc58a9c6952ac236544532643b91c55baa79b77ca001990b"
+    }
+  ]
+}

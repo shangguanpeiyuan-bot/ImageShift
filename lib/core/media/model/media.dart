@@ -1,4 +1,5 @@
 import '../../models/conversion_task.dart';
+import 'transcode_options.dart';
 
 enum MediaKind { image, video, audio, unknown }
 
@@ -51,6 +52,7 @@ class MediaStreamInfo {
     this.sampleRate,
     this.channels,
     this.bitrate,
+    this.framesPerSecond,
     this.attachedPicture = false,
   });
   final int index;
@@ -59,6 +61,7 @@ class MediaStreamInfo {
   final String type, codec;
   final int? width, height, sampleRate, channels, bitrate;
   final bool attachedPicture;
+  final double? framesPerSecond;
 }
 
 class MediaProbe {
@@ -107,9 +110,15 @@ class MediaJob {
     required this.outputFormat,
     this.imageTask,
     this.outputStem,
+    this.audioPath,
+    this.forceTranscode = false,
+    this.transcode = const TranscodeOptions(),
   });
   final String id, inputPath, outputDirectory, outputFormat;
   final String? outputStem;
+  final String? audioPath;
+  final bool forceTranscode;
+  final TranscodeOptions transcode;
   final ConversionTask? imageTask;
 }
 
