@@ -1,0 +1,167 @@
+{
+  "version": "8.17.3",
+  "source": "https://github.com/libvips/build-win64-mxe",
+  "commit": "3c9ae8ebc1f0d72eba55b03af26c60177031d711",
+  "download": {
+    "name": "vips-dev-w64-web-8.17.3.zip",
+    "size": 11458875,
+    "digest": "sha256:4c960366551911debc7e7dc8f7c41dc804bb2d39c73823a54f0993464d0f2d29",
+    "browser_download_url": "https://github.com/libvips/build-win64-mxe/releases/download/v8.17.3/vips-dev-w64-web-8.17.3.zip"
+  },
+  "files": [
+    {
+      "name": "libaom.dll",
+      "sha256": "c221e094858d3f880a0c101fb5f54e268a576f82f098a4b8d709bdd932993b84"
+    },
+    {
+      "name": "libarchive-13.dll",
+      "sha256": "df3f4fc186926d54f4c2387f713239f1909250a70305ad4a83a2afa3620ddb6f"
+    },
+    {
+      "name": "libc++.dll",
+      "sha256": "ab49c9afc889837045db809efc3e7a4dd67775e5ab00a214d4832d951f0024e5"
+    },
+    {
+      "name": "libcairo-2.dll",
+      "sha256": "bb0dcfee0031e1b6ebc1f8e16c3345cf20b7b9e98cf36afcbc073b920fd80f94"
+    },
+    {
+      "name": "libcgif-0.dll",
+      "sha256": "66d187e6d01f5f8addb371e088fe41a5f73c17a495cfc4e96ab5b45793082f59"
+    },
+    {
+      "name": "libexif-12.dll",
+      "sha256": "bf87e161665eaf2e549a84345979c756f091bd653fc329e5c1160f2c42eef437"
+    },
+    {
+      "name": "libexpat-1.dll",
+      "sha256": "73982ab051935e41721d812ee5bf2eb1519f4e96a9fffb4a5e308dea92711c5c"
+    },
+    {
+      "name": "libffi-8.dll",
+      "sha256": "a8bcbf8a40863425ede64606f0027023d7bf88e762a883a0d023782bc8adab15"
+    },
+    {
+      "name": "libfontconfig-1.dll",
+      "sha256": "82dafd935ce7f77ea5142b4b4974ebb45cc6f084a07c8a148c6359ea6e2b74e6"
+    },
+    {
+      "name": "libfreetype-6.dll",
+      "sha256": "ff3b6ed1fa03ec5f3705fb44423492298a54ae05080123080c5b96fba7cc74dc"
+    },
+    {
+      "name": "libfribidi-0.dll",
+      "sha256": "a43461ebf2a5095264db2a7c3ae43bebbe297e4a0e356040945604ac72e2df58"
+    },
+    {
+      "name": "libgio-2.0-0.dll",
+      "sha256": "9db38f3af5e49529a042830b4c548369a0c7a69d2583e4d5466e5cc8123ec2d6"
+    },
+    {
+      "name": "libglib-2.0-0.dll",
+      "sha256": "858fca4603c8f887ef9d6e471c265cd1c5da91f7bc120b7f36788aa75970c171"
+    },
+    {
+      "name": "libgmodule-2.0-0.dll",
+      "sha256": "70bad25331733f03c43412719d4552e10066db0091030d122a7e0877e9b7add2"
+    },
+    {
+      "name": "libgobject-2.0-0.dll",
+      "sha256": "cae81edab789fcc29d5e037c13792edbd438e5b7859bd84ffe32675ddbc0f7de"
+    },
+    {
+      "name": "libharfbuzz-0.dll",
+      "sha256": "74dfc8b1e0534f5f02ec66ffcb6ce61e40adfc7ab0a5ef21c90579aacc5ef262"
+    },
+    {
+      "name": "libheif.dll",
+      "sha256": "f41b10b40d00eba8e400fba15d6df849950a9d6c7b3340f6ec959eb0f5fafaeb"
+    },
+    {
+      "name": "libhwy.dll",
+      "sha256": "e6831821e9bbf1c9d92c2c86f3e5799d2bca480da8744ec442121695830be2da"
+    },
+    {
+      "name": "libimagequant.dll",
+      "sha256": "b556948d5e47ede72b1092c2e120f5134c41176b5f63b3578e0072df90091c1f"
+    },
+    {
+      "name": "libjpeg-62.dll",
+      "sha256": "08dc229e2e111a3bb9a4e258d203b078d8092d743241f3e585d92c16b164b642"
+    },
+    {
+      "name": "liblcms2-2.dll",
+      "sha256": "4c7b688376b40058230e51a3f8574b3660ae3ba5700773c3a091e5a85ca91984"
+    },
+    {
+      "name": "libpango-1.0-0.dll",
+      "sha256": "d4917514ce19b536087e37773f924695e7d534295fa324b572eaf871d7651d1b"
+    },
+    {
+      "name": "libpangocairo-1.0-0.dll",
+      "sha256": "b2d490af078c55223b1fe46cf72cfca8ef90e1e0854c0f1a1c7a5445e422b7e5"
+    },
+    {
+      "name": "libpangoft2-1.0-0.dll",
+      "sha256": "bffceb5e345b91229ba48db6dd862ce9195f74acb223a2db332adbf54ea33d84"
+    },
+    {
+      "name": "libpixman-1-0.dll",
+      "sha256": "3a27be66a6861365ecd88e02f328cb2df3172e1a42bab7e2e355b3266e1b9666"
+    },
+    {
+      "name": "libpng16-16.dll",
+      "sha256": "ef41726df7d53bfcc23b0dc1d2374b098d84963cd8eaca5b61a672a69116da3f"
+    },
+    {
+      "name": "librsvg-2-2.dll",
+      "sha256": "cc74f44a1c3ab848a49f461da638a24ff29222b2f838183243a0c71a3420217c"
+    },
+    {
+      "name": "libsharpyuv-0.dll",
+      "sha256": "852fc0957446da02e959bf35cc634ca13b674589ef82b05d79346ded8e46760b"
+    },
+    {
+      "name": "libspng-0.dll",
+      "sha256": "2fe3dfd377bc839954ef8fac1a69e09695cfeb20c50bd136e9fba1fd37b04a21"
+    },
+    {
+      "name": "libtiff-6.dll",
+      "sha256": "0d54f25bb7aba8add803d36e5c5b2d9f9be79a961fd39bebae78b50a2b6553e2"
+    },
+    {
+      "name": "libunwind.dll",
+      "sha256": "3aa0b4fbaa6ee7133e16b03515850cf695d22fd2ad8ae531671bae9f096a5fb2"
+    },
+    {
+      "name": "libvips-42.dll",
+      "sha256": "913af51ed7fe8779260be6615d0d45f0e23176a9df49f4cffdbe6952e2d483b7"
+    },
+    {
+      "name": "libvips-cpp-42.dll",
+      "sha256": "3929fd779200b941bc1899db4e293651b91a15d7952de6b3bba58522d384ab63"
+    },
+    {
+      "name": "libwebp-7.dll",
+      "sha256": "e5e3d17744aa1680acf84284e168ea42605a4cb86806d7ba1f4606138645137c"
+    },
+    {
+      "name": "libwebpdemux-2.dll",
+      "sha256": "99c1243d61cf85d7c69a60c71a712ef961f86d784675bac587cd9b7f7d2f97a5"
+    },
+    {
+      "name": "libwebpmux-3.dll",
+      "sha256": "1aab586f7e44ed8b54605fda33c0a31e3c942cb66b62d3982ef09f75c9be1cfb"
+    },
+    {
+      "name": "libxml2-16.dll",
+      "sha256": "42b12e2be0687e69ddf738f4dd83fc2053adc080abeec2bd32e79d2ba0ed77de"
+    },
+    {
+      "name": "libz1.dll",
+      "sha256": "204ed74e9503cab29c52fd32ef4109a8e1774e6402cb687124b174bfcb586167"
+    }
+  ],
+  "verification": "All 38 plugin DLLs match official web bundle byte for byte",
+  "imagequant": "BSD-2-Clause fork 2.4.1"
+}

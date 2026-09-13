@@ -14,4 +14,8 @@ FFmpeg bundle archive SHA256：536d71dba608d9c61167f0fae8e286f6784d037f9d6a8748d
 
 当前 smoke 使用本机程序生成的 color/sine，无用户媒体上传。FFmpeg 编码器清单显示 libopenh264、libkvazaar、AV1、VP9 等，但只把实际通过的编码配置作为 Tested；硬件 encoder 名字存在不代表硬件可用。
 
-发行前仍需完成：全部传递组件版权/License/source 对应性、Android native 方案、最终包清单和构建回归。Windows libvips 随包存在 libimagequant，必须核实其许可证和实际链接范围，不能直接将整个二进制组合标为 MIT。
+后续核查：插件全部 38 个 Windows DLL 与官方 build-win64-mxe v8.17.3 web 包哈希一致；逐文件清单见 tool/native/vips-windows.json，版本表见 third_party/vips-windows-versions.json。官方构建提交 3c9ae8ebc1f0d72eba55b03af26c60177031d711 的依赖表确认 imagequant 为 BSD-2-Clause 的 2.4.1 分支，不能套用当前 imagequant 主分支 GPL 许可。libvips 确实链接该 DLL，已用 PE imports 核实。
+
+Android FFmpeg 的固定 AAR、上游源码、C++ runtime 统一、实际缺失的 smart-exception 依赖与构建证据见 ANDROID_MEDIA_BACKEND.md。发行前仍需补齐全部传递组件版权/许可文本、对应源码分发说明、最终包清单和设备回归；整个二进制组合不能只标 MIT。
+
+已从校验过 SHA-256 的 Android AAR `res/raw/license*.txt` 原样提取 33 个许可文本，存入 `third_party/android-ffmpegkit-*`；应用离线开源许可证页动态登记全部随包 txt/md notices。未复制 AAR 中过时的 source.txt 对上游邮箱的源码提供承诺；该承诺不能由 ImageShift 冒用，对应源码闭环仍是公开二进制发行前的未解决项。Windows 官方构建表将组合包用于 LGPLv3 条款，不能把 libvips 自身 LGPL2.1 文本当作整个组合的唯一许可。

@@ -1,5 +1,5 @@
 name: imageshift
-description: Fully local image conversion for Android and Windows.
+description: Fully local image, video and audio conversion for Android and Windows.
 publish_to: 'none'
 version: 1.0.0+1
 

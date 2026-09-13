@@ -4,19 +4,13 @@ import 'package:flutter/services.dart';
 
 import 'app/imageshift_app.dart';
 import 'application/local_library.dart';
+import 'application/third_party_licenses.dart';
 import 'application/workspace_controller.dart';
 import 'platform/file_access.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  LicenseRegistry.addLicense(() async* {
-    yield LicenseEntryWithLineBreaks([
-      'ImageShift',
-    ], await rootBundle.loadString('LICENSE'));
-    yield LicenseEntryWithLineBreaks([
-      'image: additional codec notices',
-    ], await rootBundle.loadString('docs/third_party/image-LICENSE-other.md'));
-  });
+  LicenseRegistry.addLicense(() => bundledLicenses(rootBundle));
   final files = FileAccess();
   LocalLibrary library;
   try {
