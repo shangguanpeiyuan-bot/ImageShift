@@ -1,6 +1,7 @@
 package io.github.shangguanpeiyuanbot.imageshift
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -21,9 +22,11 @@ class MainActivity : FlutterActivity() {
     private val session by lazy { File(cacheDir, "imageshift-${UUID.randomUUID()}").apply { mkdirs() } }
     private val maxFileBytes = 128L * 1024 * 1024
     private var importedBytes = 0L
+    private var mediaPicker = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        AndroidMediaBridge(this, flutterEngine.dartExecutor.binaryMessenger)
         worker.execute {
             // Only old, app-owned UUID session directories; preserve this
             // session and anything less than 24 hours old (including another window).
@@ -40,6 +43,11 @@ class MainActivity : FlutterActivity() {
             "io.github.shangguanpeiyuanbot.imageshift/files").setMethodCallHandler { call, result ->
             when (call.method) {
                 "applicationDirectory" -> result.success(filesDir.absolutePath)
+                "availableMemory" -> {
+                    val info = ActivityManager.MemoryInfo()
+                    getSystemService(ActivityManager::class.java).getMemoryInfo(info)
+                    result.success(if (info.lowMemory) 0L else info.availMem)
+                }
                 "validateOutput" -> execute(result) {
                     val uri = Uri.parse(call.argument<String>("tree")!!)
                     val document = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
@@ -48,9 +56,10 @@ class MainActivity : FlutterActivity() {
                     } ?: error("目录权限已失效")
                     null
                 }
-                "pickImages", "pickOutput" -> {
+                "pickImages", "pickMedia", "pickOutput" -> {
                     if (pending != null) { result.error("busy", "文件选择器已打开", null); return@setMethodCallHandler }
-                    val isFiles = call.method == "pickImages"
+                    val isFiles = call.method != "pickOutput"
+                    mediaPicker = call.method == "pickMedia"
                     val intent = Intent(if (isFiles) Intent.ACTION_OPEN_DOCUMENT else Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
                         putExtra(Intent.EXTRA_LOCAL_ONLY, true)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -124,6 +133,7 @@ class MainActivity : FlutterActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != filesRequest && requestCode != treeRequest) return
         val callback = pending ?: return
+        val unrestrictedMedia = mediaPicker
         pending = null
         if (resultCode != Activity.RESULT_OK || data == null) {
             callback.success(if (requestCode == filesRequest) emptyList<Any>() else null)
@@ -159,7 +169,8 @@ class MainActivity : FlutterActivity() {
                     contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use {
                         if (it.moveToFirst()) { name = it.getString(0) ?: name; if (!it.isNull(1)) knownSize = it.getLong(1) }
                     }
-                    if (knownSize > maxFileBytes) error("文件超过 128 MiB 上限")
+                    if (!unrestrictedMedia && knownSize > maxFileBytes) error("文件超过 128 MiB 上限")
+                    if (knownSize > 0 && knownSize > session.usableSpace) error("本地可用空间不足以暂存所选文件")
                     val safeName = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").take(120).ifBlank { "image" }
                     copied = File(File(session, UUID.randomUUID().toString()).apply { mkdirs() }, safeName)
                     var written = 0L
@@ -170,7 +181,7 @@ class MainActivity : FlutterActivity() {
                                 val count = input.read(buffer)
                                 if (count < 0) break
                                 written += count
-                                if (written > maxFileBytes || importedBytes + written > 2L * 1024 * 1024 * 1024) error("已达到本次导入缓存上限，请分批处理")
+                                if (!unrestrictedMedia && (written > maxFileBytes || importedBytes + written > 2L * 1024 * 1024 * 1024)) error("已达到本次导入缓存上限，请分批处理")
                                 output.write(buffer, 0, count)
                             }
                         }

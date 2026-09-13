@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import '../../imaging/format_detector.dart';
 import '../../models/conversion_task.dart';
 import '../jobs/cancellation_token.dart';
+import '../jobs/image_resource_policy.dart';
 import '../model/media.dart';
 import '../output/temp_file_manager.dart';
 import '../probe/image_sequence_guard.dart';
@@ -21,6 +22,15 @@ class VipsImageBackend implements MediaBackend {
   @override
   String get id => 'libvips';
 
+  // This Android bundle has no TIFF saver (device-tested); do not advertise
+  // desktop capabilities on Android. Keep input decoding separately probed.
+  Set<String> get outputFormats => {
+    'jpg',
+    'png',
+    'webp',
+    if (!Platform.isAndroid) 'tiff',
+  };
+
   @override
   Future<MediaProbe> probe(String path, CancellationToken cancellation) async {
     cancellation.throwIfCancelled();
@@ -32,8 +42,7 @@ class VipsImageBackend implements MediaBackend {
 
   @override
   bool supports(MediaProbe input, MediaJob job) =>
-      input.kind == MediaKind.image &&
-      {'jpg', 'png', 'webp', 'tiff'}.contains(job.outputFormat);
+      input.kind == MediaKind.image && outputFormats.contains(job.outputFormat);
 
   @override
   Future<MediaResult> execute(
@@ -43,6 +52,13 @@ class VipsImageBackend implements MediaBackend {
     ProgressCallback onProgress,
   ) async {
     cancellation.throwIfCancelled();
+    if (!supports(input, job)) {
+      throw const MediaError(
+        MediaErrorCode.unsupportedFormat,
+        '此平台的图片后端不支持该输出格式。',
+      );
+    }
+    checkImageResources(input, job);
     final temp = await TempFileManager.create(
       job.outputDirectory,
       job.outputFormat,

@@ -30,6 +30,10 @@ class TranscodeOptions {
   bool get changesAudio =>
       audioKbps != null || sampleRate != null || channels != null;
   void validate() {
+    if (videoCodec != null &&
+        !{'h264', 'hevc', 'av1', 'vp9'}.contains(videoCodec)) {
+      throw const MediaError(MediaErrorCode.invalidParameters, '未知的视频编码选项。');
+    }
     bool outside(int? v, int min, int max) => v != null && (v < min || v > max);
     if (outside(width, 2, 16384) ||
         outside(height, 2, 16384) ||

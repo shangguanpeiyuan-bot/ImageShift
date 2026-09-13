@@ -113,12 +113,14 @@ class MediaJob {
     this.audioPath,
     this.forceTranscode = false,
     this.transcode = const TranscodeOptions(),
+    this.memoryBudgetBytes,
   });
   final String id, inputPath, outputDirectory, outputFormat;
   final String? outputStem;
   final String? audioPath;
   final bool forceTranscode;
   final TranscodeOptions transcode;
+  final int? memoryBudgetBytes;
   final ConversionTask? imageTask;
 }
 

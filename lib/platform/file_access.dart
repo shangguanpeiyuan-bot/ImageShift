@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/image_engine.dart';
+import 'windows_memory.dart';
 
 class ImportedFile {
   const ImportedFile(this.path, this.name, {this.error});
@@ -20,9 +21,57 @@ class OutputLocation {
 
 /// Platform boundary. Android URIs never reach dart:io as pretend file paths.
 class FileAccess {
+  Future<int?> availableMemoryBytes() async {
+    try {
+      if (Platform.isWindows) return windowsAvailableMemory();
+      if (Platform.isAndroid) {
+        return await channel.invokeMethod<int>('availableMemory');
+      }
+    } catch (_) {
+      /* An unavailable measurement is not reported as zero RAM. */
+    }
+    return null;
+  }
+
   static const channel = MethodChannel(
     'io.github.shangguanpeiyuanbot.imageshift/files',
   );
+
+  Future<List<ImportedFile>> pickMedia() async {
+    if (!Platform.isAndroid) {
+      final picked = await openFiles(
+        acceptedTypeGroups: const [XTypeGroup(label: '本地媒体')],
+      );
+      return picked.map((f) => ImportedFile(f.path, f.name)).toList();
+    }
+    final picked = await channel.invokeListMethod<dynamic>('pickMedia') ?? [];
+    return picked.map((item) {
+      final value = Map<String, dynamic>.from(item as Map);
+      return ImportedFile(
+        value['path'] as String? ?? '',
+        value['name'] as String? ?? '媒体',
+        error: value['error'] as String?,
+      );
+    }).toList();
+  }
+
+  Future<String> publishMedia(
+    String path,
+    String mime,
+    OutputLocation location,
+  ) async {
+    if (!location.isDocumentTree) return path;
+    final published = await channel.invokeMethod<String>('publish', {
+      'tree': location.id,
+      'path': path,
+      'name': p.basename(path),
+      'mime': mime,
+    });
+    if (published == null) {
+      throw const FileSystemException('Output provider returned no document');
+    }
+    return published;
+  }
 
   Future<Directory> applicationDirectory() async {
     if (Platform.isAndroid) {

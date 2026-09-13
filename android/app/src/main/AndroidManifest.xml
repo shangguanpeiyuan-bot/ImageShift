@@ -1,9 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <application
         android:allowBackup="false"
         android:label="ImageShift"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <service android:name=".MediaProcessingService" android:exported="false"
+            android:foregroundServiceType="mediaProcessing|dataSync" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

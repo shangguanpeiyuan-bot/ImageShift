@@ -4,8 +4,9 @@ import 'package:path/path.dart' as p;
 
 import '../../files/output_namer.dart';
 import '../model/media.dart';
+import 'atomic_publish.dart';
 
-/// Owns only its freshly created staging directory and exclusive reservation.
+/// Owns only its freshly created staging directory.
 /// Staging on the destination volume avoids cross-volume rename copies.
 class TempFileManager {
   TempFileManager._(this.directory, this.file);
@@ -40,24 +41,17 @@ class TempFileManager {
       final candidate = File(
         p.join(directory.parent.path, '$name${i == 0 ? '' : '_$i'}.$extension'),
       );
-      try {
-        await candidate.create(exclusive: true);
-      } on FileSystemException {
-        if (await FileSystemEntity.type(candidate.path, followLinks: false) !=
-            FileSystemEntityType.notFound) {
-          continue;
-        }
-        rethrow;
-      }
-      try {
-        // Replace only the empty file exclusively created above, never a
-        // pre-existing output. No check-then-overwrite of a user's file.
-        await file.rename(candidate.path);
+      if (publishWithoutReplacement(file.path, candidate.path)) {
         return candidate.path;
-      } catch (_) {
-        await candidate.delete();
-        rethrow;
       }
+      if (await FileSystemEntity.type(candidate.path, followLinks: false) !=
+          FileSystemEntityType.notFound) {
+        continue;
+      }
+      throw const MediaError(
+        MediaErrorCode.temporaryFileFailure,
+        '无法安全保存新文件，请检查文件系统、空间及权限。',
+      );
     }
   }
 

@@ -44,10 +44,14 @@ class FfmpegBackend implements MediaBackend {
         '无法读取本地编码器能力。',
       );
     }
-    final encoders = RegExp(
-      r'^\s*[VAS][A-Z.]{5}\s+(\S+)\s',
-      multiLine: true,
-    ).allMatches(output.stdout).map((m) => m.group(1)!).toSet();
+    final encoders = RegExp(r'^\s*[VAS][A-Z.]{5}\s+(\S+)\s', multiLine: true)
+        .allMatches(output.stdout)
+        .map((m) => m.group(1)!)
+        .where((name) => name != '=')
+        .toSet();
+    // Android 8.1.7 advertises VP9, but its generated profile-0 streams failed
+    // full decoding on API 35 x86_64. Do not expose it until revalidated.
+    if (Platform.isAndroid) encoders.remove('libvpx-vp9');
     if (encoders.isEmpty) {
       throw const MediaError(
         MediaErrorCode.resourceUnavailable,
@@ -87,7 +91,7 @@ class FfmpegBackend implements MediaBackend {
       cancellation,
       timeout: const Duration(minutes: 2),
     );
-    if (output.exitCode != 0) {
+    if (output.exitCode != 0 || output.stderr.trim().isNotEmpty) {
       throw MediaError(
         MediaErrorCode.corruptedMedia,
         '无法识别媒体，文件可能损坏或格式不受支持。',
@@ -95,10 +99,18 @@ class FfmpegBackend implements MediaBackend {
         exitCode: output.exitCode,
       );
     }
-    return parseFfprobe(
-      jsonDecode(output.stdout) as Map<String, dynamic>,
-      fileBytes: await file.length(),
-    );
+    try {
+      return parseFfprobe(
+        jsonDecode(output.stdout) as Map<String, dynamic>,
+        fileBytes: await file.length(),
+      );
+    } on FormatException {
+      throw MediaError(
+        MediaErrorCode.corruptedMedia,
+        '媒体探测返回了不完整数据，未继续转换。',
+        backend: id,
+      );
+    }
   }
 
   static const videoFormats = {'mp4', 'mkv', 'mov', 'webm'};
@@ -251,7 +263,11 @@ class FfmpegBackend implements MediaBackend {
         '目标格式不能完整保留当前流，请选择兼容容器。',
       );
     }
-    final codec = options.videoCodec ?? (target == 'webm' ? 'vp9' : 'h264');
+    final codec =
+        options.videoCodec ??
+        (target == 'webm'
+            ? (verifiedEncoders.contains('libvpx-vp9') ? 'vp9' : 'av1')
+            : 'h264');
     final video = videoEncoders[codec];
     if (video == null ||
         (target == 'webm' && !{'vp9', 'av1'}.contains(codec)) ||

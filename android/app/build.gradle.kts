@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -47,4 +49,34 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+val ffmpegNative by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+val verifiedFfmpegAar = providers.provider {
+    val source = ffmpegNative.singleFile
+    val hash = MessageDigest.getInstance("SHA-256")
+        .digest(source.readBytes()).joinToString("") { "%02x".format(it) }
+    check(hash == "c3cbc81d498175fd2aa69ee2dfe7dafbf519052a96283c2568fe5b3b16618456") {
+        "FFmpeg AAR checksum mismatch"
+    }
+    source
+}
+// One C++ runtime: libvips builds against this project's NDK. Remove only the
+// older bundled copy from the verified FFmpeg AAR; never use ambiguous pickFirst.
+val prepareFfmpegAar by tasks.registering(Zip::class) {
+    from(verifiedFfmpegAar.map { zipTree(it) })
+    exclude("jni/**/libc++_shared.so")
+    archiveFileName.set("ffmpeg-kit-full-8.1.7-project-cxx.aar")
+    destinationDirectory.set(layout.buildDirectory.dir("native-dependencies"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+dependencies {
+    add(ffmpegNative.name, "dev.ffmpegkit-maintained:ffmpeg-kit-full:8.1.7@aar")
+    implementation(files(prepareFfmpegAar.flatMap { it.archiveFile }))
+    // Required by the actual FFmpegKit classes and upstream build.gradle.
+    implementation("com.arthenica:smart-exception-java:0.2.1")
 }
