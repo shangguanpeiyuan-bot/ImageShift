@@ -33,3 +33,9 @@
 - **验收条件**：APK/Windows 构建真实成功并核实产物，Android 签名策略明确；Installer 有开始菜单/卸载/可选快捷方式且不需要 Flutter SDK；Release 附件为真实构建；无敏感内容提交，无 force push。
 - **测试条件**：完整 analyze/test、双平台 Release Build、实际 UI/安装/启动/卸载验收、断网本地处理、数据安全和大图回归；Git 安全检查与发布附件校验。人工授权/签名/UAC 问题在实际步骤明确报告。
 - **当前状态**：发行交付完成（2026-09-13）。采用 MIT；Android 专用密钥签名及 v2/v3/16 KB 对齐验证通过；Windows Release、完整 ZIP、Installer 及安装/启动/重启/卸载验证完成。131 项测试通过，analyze 无问题，源码和 v1.0.0 已发布到 [GitHub Release](https://github.com/shangguanpeiyuan-bot/ImageShift/releases/tag/v1.0.0)，四个附件大小与 SHA-256 已逐个核对。Android 真机、全新 Windows/ARM64 等未做验收的限制仍保留，详见 [PHASE_D_REPORT.md](PHASE_D_REPORT.md)。
+
+## 2026-09-14 媒体升级（最新用户要求）
+
+新的产品目标为完全本地的图片、视频、音频及经过验证的缓存工作台。完整原始要求见 [MEDIA_UPGRADE_REQUIREMENTS.md](MEDIA_UPGRADE_REQUIREMENTS.md)，执行架构见 [MEDIA_ARCHITECTURE.md](MEDIA_ARCHITECTURE.md)。旧四阶段是 v1 历史，不代表新媒体升级已完成；开发期间沿用 1.0.0+1，最终验收后才调整版本，不覆盖 v1.0.0。
+
+用户已反馈 v1.0 Android 真机可以运行；这属于用户实测反馈，不等同于新原生媒体后端、长任务、16 KB 设备及全部 SAF 提供程序验收。

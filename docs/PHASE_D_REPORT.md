@@ -56,3 +56,6 @@ artifacts/phase-d：pub-get.log、analyze.log、test.log、windows-release.log�
 - Android 密钥/密码/DPAPI 文件、unsigned APK、对齐暂存、SDK 路径配置均未上传；发行目录使用明确的四文件白名单，不上传整个目录。
 
 本轮完成后停止。未来更新应读取当前规范与报告，沿用发布密钥；不得重新 clone、重装环境或覆盖已发布标签。
+
+## 2026-09-14 用户反馈补记
+用户确认公开 v1.0 在 Android 真机可以运行。上文无设备是发布时现场记录；新 FFmpeg/libvips 能力仍须独立设备验收。

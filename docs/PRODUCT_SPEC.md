@@ -152,3 +152,9 @@ Phase D 发布前检查 Git 内容，排除 build、local.properties、SDK 本�
 ## 18. 证据与工作约束
 
 禁止伪造功能、格式支持、测试、构建、APK、Installer、GitHub 发布结果。以实际文件、命令输出、文档和错误为依据；失败后据实修复，不把未来目标写成完成。阶段状态集中维护在 ROADMAP，验收证据写入阶段报告。遇到必须人工 UAC、登录、授权、许可证确认或重启时，说明当前窗口与操作，处理后续接；常规已授权操作直接完成。
+
+## 2026-09-14 媒体升级（最新用户要求）
+
+新的产品目标为完全本地的图片、视频、音频及经过验证的缓存工作台。完整原始要求见 [MEDIA_UPGRADE_REQUIREMENTS.md](MEDIA_UPGRADE_REQUIREMENTS.md)，执行架构见 [MEDIA_ARCHITECTURE.md](MEDIA_ARCHITECTURE.md)。旧四阶段是 v1 历史，不代表新媒体升级已完成；开发期间沿用 1.0.0+1，最终验收后才调整版本，不覆盖 v1.0.0。
+
+用户已反馈 v1.0 Android 真机可以运行；这属于用户实测反馈，不等同于新原生媒体后端、长任务、16 KB 设备及全部 SAF 提供程序验收。

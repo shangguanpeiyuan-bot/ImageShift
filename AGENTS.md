@@ -46,3 +46,6 @@ flutter create --platforms=android,windows --org io.github.shangguanpeiyuanbot -
 ```
 
 工程生成后读取实际配置验证身份。不要因为文件缺失或不确定而未经检查重新生成整个项目。
+
+## 当前媒体升级
+最新要求见 docs/MEDIA_UPGRADE_REQUIREMENTS.md，架构见 docs/MEDIA_ARCHITECTURE.md。持续完成媒体升级，不在每阶段等待确认；现有 A-D 为 v1 历史。开发保持当前版本，原签名文件不修改、不移动、不重新生成。不得覆盖公开 v1.0.0。
