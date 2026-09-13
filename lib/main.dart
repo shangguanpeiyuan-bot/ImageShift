@@ -11,6 +11,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks([
+      'ImageShift',
+    ], await rootBundle.loadString('LICENSE'));
+    yield LicenseEntryWithLineBreaks([
       'image: additional codec notices',
     ], await rootBundle.loadString('docs/third_party/image-LICENSE-other.md'));
   });

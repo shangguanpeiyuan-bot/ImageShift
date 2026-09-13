@@ -15,6 +15,7 @@ foreach($required in @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')) 
     if(-not (Test-Path -LiteralPath (Join-Path $runtime $required))) {throw "Missing redistributable runtime: $required"}
 }
 Get-ChildItem -LiteralPath $runtime -Filter '*.dll' | Copy-Item -Destination $release
+Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination (Join-Path $release 'LICENSE.txt')
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 & $compiler "/DAppSource=$release" "/DDistDir=$dist" (Join-Path $PSScriptRoot 'imageshift.iss')
 if($LASTEXITCODE -ne 0){throw 'Installer compile failed'}

@@ -35,6 +35,8 @@
 
 遵循四阶段路线。用户已明确授权继续 Phase C 和 D，沿用 A/B 成果，不重复初始化。先完成 C 的持久化、性能和平台打磨，再做 D 的测试、Release 构建、Installer、Git 提交/push 与 GitHub Release。按实际结果更新报告；签名和项目许可证未确定时先核实，不得冒用调试签名为正式签名。
 
+用户已明确同意采用 MIT 许可证，并生成保存在仓库外的 ImageShift 专用 Android 发布密钥。沿用该密钥为后续同 Application ID 更新签名，不得擅自重新生成替换。密钥、密码和保护文件均不得进入 Git 或 Release 附件。
+
 工程尚不存在时才可在仓库根执行：
 
 ```powershell

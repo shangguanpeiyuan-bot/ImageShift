@@ -46,7 +46,7 @@ class AboutPage extends StatelessWidget {
       const SizedBox(height: 24),
       Text('开源与许可', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 10),
-      const Text('项目许可证尚未选定；依赖许可证不代表项目自身的授权。'),
+      const Text('ImageShift 采用 MIT 许可证。第三方组件保留各自的许可证与版权声明。'),
       const SelectableText(
         'https://github.com/shangguanpeiyuan-bot/ImageShift',
       ),

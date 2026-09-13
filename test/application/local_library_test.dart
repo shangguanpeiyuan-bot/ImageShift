@@ -19,7 +19,22 @@ void main() {
     root = Directory.systemTemp.createTempSync('imageshift_library_');
     store = LibraryStore(root);
   });
-  tearDown(() => root.deleteSync(recursive: true));
+  tearDown(() async {
+    // Windows may briefly retain delete-pending entries after many renames.
+    // Retry only the temporary-directory cleanup; never mask an assertion or
+    // an unrelated filesystem failure.
+    for (var attempt = 0; ; attempt++) {
+      try {
+        if (await root.exists()) await root.delete(recursive: true);
+        break;
+      } on FileSystemException catch (error) {
+        if (attempt >= 4 || ![32, 145].contains(error.osError?.errorCode)) {
+          rethrow;
+        }
+        await Future<void>.delayed(Duration(milliseconds: 50 * (attempt + 1)));
+      }
+    }
+  });
   test(
     'restart restores theme, welcome, parameters, presets and directory',
     () async {

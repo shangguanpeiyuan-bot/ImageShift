@@ -1,6 +1,6 @@
 # ImageShift
 
-面向 Windows 与 Android 的完全本地图片处理软件。当前完成 A/B/C 的核心、双平台界面、批量工具与持久化。D 阶段已生成 Windows Release、安装器与完整 ZIP；Android Release 已编译但尚未正式签名，GitHub Release 尚未发布。
+面向 Windows 与 Android 的完全本地图片处理软件。当前完成 A/B/C 的核心、双平台界面、批量工具与持久化。D 阶段已生成 Windows Release、安装器与完整 ZIP；Android Release 已用专用密钥签名并验证，GitHub Release 附件已准备就绪。
 
 ## 当前功能
 
@@ -21,7 +21,7 @@
 
 选择图片 → 选择处理参数和输出文件夹 → 开始处理 → 查看结果与对比。所有处理在本机完成，不上传图片、不使用在线图片转换服务。Windows 原文件不写入；Android 仅将用户选择的文件复制到应用私有缓存，清空/移除列表时清理对应副本，已导出的文档保留。
 
-当前 **131 项自动测试通过，flutter analyze 无问题**。Windows 原生选择/导出/拖拽与多窗口尺寸已实测，Release 安装、启动、主题重启恢复与卸载通过。Android Release 编译通过；**尚无 Android 真机/模拟器运行验收，未签名 APK 不能当作可安装发行包。**
+当前 **131 项自动测试通过，flutter analyze 无问题**。Windows 原生选择/导出/拖拽与多窗口尺寸已实测，Release 安装、启动、主题重启恢复与卸载通过。Android Release 编译及专用密钥签名验证通过；**尚无 Android 真机/模拟器运行验收。**
 
 单文件限制 128 MiB、2400 万像素、单边 16384 px；列表最多 500 项，Android 本次导入缓存最多 2 GiB。CPU 处理共享一个后台执行槽。取消允许正在执行的一张安全完成。4K、12/24 MP、TIFF 与 100 张批处理已测；8K 超出像素上限会拒绝。详细数据与内存测量边界见 [C 报告](docs/PHASE_C_REPORT.md)。Android 旧会话私有缓存超过 24 小时按目录边界回收。
 
@@ -49,7 +49,7 @@ Android 的 Kotlin 增量编译已关闭，以规避本机包缓存与工程跨�
 
 Windows 运行需要完整构建目录中的 DLL/data，不能只复制 exe。本机产物在 artifacts/phase-d/dist：ImageShift-v1.0.0-Windows-Setup.exe（当前用户安装，含开始菜单、卸载、可选桌面快捷方式）及 ImageShift-v1.0.0-Windows-x64.zip。无需 Flutter SDK。安装器尚无 Authenticode 签名；当前不提供 GitHub 下载承诺。
 
-Windows 打包脚本为 tool/package_windows.ps1，传入实际 Inno Setup ISCC.exe 与 Visual Studio 可再分发 CRT 目录，自动包含完整 Release 和 DLL。Android 构建不再回退到 debug signing；需要使用用户确认的仓库外签名密钥通过 apksigner 签名并验证后，才生成可发行的 ImageShift-v1.0.0-Android.apk。GitHub 登录及源码 push 已成功；签名和项目许可仍待确定。
+Windows 打包脚本为 tool/package_windows.ps1，传入实际 Inno Setup ISCC.exe 与 Visual Studio 可再分发 CRT 目录，自动包含完整 Release 和 DLL。Android 构建不再回退到 debug signing；已使用用户确认的仓库外专用密钥签名，ImageShift-v1.0.0-Android.apk 的 APK v2/v3 签名与 16 KB 对齐检查通过。后续更新必须使用相同密钥，不得重新生成替换。GitHub 登录及源码 push 已成功。
 
 ## 结构
 
@@ -73,5 +73,5 @@ lib/ui/            设计系统、页面与独立控件
 - [产品规格](docs/PRODUCT_SPEC.md)、[四阶段路线](docs/ROADMAP.md)、[AGENTS](AGENTS.md)
 - [Phase A 报告](docs/PHASE_A_REPORT.md)、[Phase B 报告](docs/PHASE_B_REPORT.md)、[Phase C 报告](docs/PHASE_C_REPORT.md)、[Phase D 报告](docs/PHASE_D_REPORT.md)
 - 直接依赖：image 4.9.2（MIT 及附属条款）、path 1.9.1（BSD-3-Clause）、file_selector 1.1.0（BSD-3-Clause）、desktop_drop 0.8.4（Apache-2.0）、Flutter SDK。锁定解析版本见 pubspec.lock，原文见 [third_party](docs/third_party/)。
-- **ImageShift 自身的开源许可证尚未确定**；依赖许可不是项目许可。
+- **ImageShift 采用 [MIT 许可证](LICENSE)**；第三方组件保留各自许可证。
 - 发布状态以 D 报告和实际 Git 结果为准；当前无已发布的 [GitHub Release](https://github.com/shangguanpeiyuan-bot/ImageShift)。
