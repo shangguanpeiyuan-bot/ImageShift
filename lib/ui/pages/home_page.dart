@@ -20,10 +20,12 @@ class HomePage extends StatelessWidget {
     required this.controller,
     required this.onTool,
     this.toolsOnly = false,
+    this.onImportMedia,
   });
   final WorkspaceController controller;
   final void Function(int) onTool;
   final bool toolsOnly;
+  final VoidCallback? onImportMedia;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -41,7 +43,7 @@ class HomePage extends StatelessWidget {
                 children: [
                   Icon(Icons.shield_outlined, size: 16, color: colors.primary),
                   Text(
-                    '本地处理 · 原图安全',
+                    '本地处理 · 原文件安全',
                     style: TextStyle(
                       color: colors.primary,
                       fontWeight: FontWeight.w600,
@@ -51,14 +53,14 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                '让每一张图片，\n恰到好处。',
+                '你的媒体，\n在本地自在转换。',
                 style: compact
                     ? theme.textTheme.headlineMedium
                     : theme.textTheme.headlineLarge,
               ),
               const SizedBox(height: 12),
               Text(
-                '快速、安全的本地图片处理工具',
+                '图片、视频、音频，一个本地工作台',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colors.onSurfaceVariant,
                 ),
@@ -79,26 +81,34 @@ class HomePage extends StatelessWidget {
                     const SizedBox(height: 18),
                     Text(
                       theme.platform == TargetPlatform.windows
-                          ? '拖入图片，即刻开始'
-                          : '选择图片，即刻开始',
+                          ? '拖入文件，即刻开始'
+                          : '选择文件，即刻开始',
                       style: theme.textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '支持 JPG、PNG、WebP、BMP 等静态图片\n格式按文件内容识别，始终另存新文件',
+                      '自动识别图片、视频、音频与已支持的本地缓存\n始终另存新文件，媒体内容不会上传',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                     const SizedBox(height: 20),
                     FilledButton.icon(
-                      onPressed: controller.busy ? null : controller.pickImages,
-                      icon: const Icon(Icons.add_photo_alternate_outlined),
-                      label: const Text('选择图片'),
+                      onPressed: controller.busy
+                          ? null
+                          : onImportMedia ?? controller.pickImages,
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('导入文件'),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 34),
+              OutlinedButton.icon(
+                onPressed: () => controller.navigate(8),
+                icon: const Icon(Icons.perm_media_outlined),
+                label: const Text('打开本地媒体工作台'),
+              ),
+              const SizedBox(height: 20),
             ],
             Row(
               children: [

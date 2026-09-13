@@ -15,6 +15,11 @@ class FakeFiles extends FileAccess {
     picks++;
     return [];
   }
+  @override
+  Future<List<ImportedFile>> pickMedia() async {
+    picks++;
+    return [];
+  }
 }
 
 void main() {
@@ -62,7 +67,7 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
-          expect(find.textContaining('恰到好处'), findsOneWidget);
+          expect(find.textContaining('在本地自在转换'), findsOneWidget);
           for (final page in [1, 2, 3, 4]) {
             c.navigate(page);
             await tester.pumpAndSettle();
@@ -83,9 +88,10 @@ void main() {
       addTearDown(c.dispose);
       await tester.pumpWidget(ImageShiftApp(controller: c));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('选择图片'));
+      await tester.tap(find.text('导入文件'));
       await tester.pumpAndSettle();
       expect(files.picks, 1);
+      expect(c.page, 8);
       expect(c.assets, isEmpty);
       expect(c.message, isNull);
       await tester.pumpWidget(const SizedBox());

@@ -4,9 +4,11 @@ import '../../application/local_library.dart';
 import '../../application/workspace_controller.dart';
 import '../../application/editor_serialization.dart';
 import '../../application/editor_settings.dart';
+import '../../application/media_workspace_controller.dart';
+import '../../application/media_library.dart';
 import '../theme.dart';
 
-Future<String?> _nameDialog(
+Future<String?> promptPresetName(
   BuildContext context,
   String title, {
   String initial = '',
@@ -45,8 +47,9 @@ Future<String?> _nameDialog(
 }
 
 class PresetsPage extends StatelessWidget {
-  const PresetsPage({super.key, required this.controller});
+  const PresetsPage({super.key, required this.controller, this.media});
   final WorkspaceController controller;
+  final MediaWorkspaceController? media;
   @override
   Widget build(BuildContext context) {
     final l = controller.library;
@@ -66,7 +69,7 @@ class PresetsPage extends StatelessWidget {
               onPressed: controller.busy || l.presets.length >= 100
                   ? null
                   : () async {
-                      final name = await _nameDialog(context, '保存当前参数');
+                      final name = await promptPresetName(context, '保存当前参数');
                       if (name != null) {
                         await l.addPreset(name, controller.settings);
                       }
@@ -78,6 +81,50 @@ class PresetsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          if (l.mediaPresets.isNotEmpty)
+            Text('媒体预设', style: Theme.of(context).textTheme.titleLarge),
+          for (final preset in l.mediaPresets)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.perm_media_outlined),
+                title: Text(preset.name),
+                subtitle: Text(
+                  '${preset.kind.name} · ${preset.format.toUpperCase()}',
+                ),
+                onTap: media == null || media!.busy
+                    ? null
+                    : () {
+                        media!.applyPreset(preset);
+                        controller.navigate(8);
+                      },
+                trailing: PopupMenuButton<String>(
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'rename', child: Text('重命名')),
+                    PopupMenuItem(value: 'delete', child: Text('删除')),
+                  ],
+                  onSelected: (action) async {
+                    if (action == 'delete') {
+                      l.mediaPresets.remove(preset);
+                    } else {
+                      final name = await promptPresetName(
+                        context,
+                        '重命名媒体预设',
+                        initial: preset.name,
+                      );
+                      final index = l.mediaPresets.indexOf(preset);
+                      if (name != null && index >= 0) {
+                        l.mediaPresets[index] = MediaPreset.fromJson({
+                          ...preset.toJson(),
+                          'name': name,
+                        });
+                      }
+                    }
+                    await l.save();
+                  },
+                ),
+              ),
+            ),
+          Text('图片预设', style: Theme.of(context).textTheme.titleLarge),
           for (final p in [...LocalLibrary.builtIns, ...l.presets])
             Card(
               child: ListTile(
@@ -102,7 +149,7 @@ class PresetsPage extends StatelessWidget {
                             await l.save();
                           }
                           if (action == 'rename' && context.mounted) {
-                            final name = await _nameDialog(
+                            final name = await promptPresetName(
                               context,
                               '重命名预设',
                               initial: p.name,
@@ -140,13 +187,13 @@ class HistoryPage extends StatelessWidget {
         children: [
           Text('处理历史', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 8),
-          const Text('仅保留最近 200 次任务摘要和参数，不保存图片或原文件名。'),
+          const Text('图片与媒体各保留最近 200 次任务摘要，不保存媒体本体或原文件名。'),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               icon: const Icon(Icons.delete_outline),
               label: const Text('清空历史'),
-              onPressed: l.history.isEmpty
+              onPressed: l.history.isEmpty && l.mediaHistory.isEmpty
                   ? null
                   : () async {
                       final yes = await showDialog<bool>(
@@ -168,12 +215,26 @@ class HistoryPage extends StatelessWidget {
                       );
                       if (yes == true) {
                         l.history.clear();
+                        l.mediaHistory.clear();
                         await l.save();
                       }
                     },
             ),
           ),
-          if (l.history.isEmpty)
+          for (final h in l.mediaHistory)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.perm_media_outlined),
+                title: Text(
+                  '${h.time.toLocal().toString().split('.').first} · ${h.total} 个媒体任务',
+                ),
+                subtitle: Text(
+                  '${h.completed} 成功 · ${h.failed} 失败 · ${h.cancelled} 取消\n'
+                  '${formatBytes(h.inputBytes)} → ${formatBytes(h.outputBytes)}（成功项）',
+                ),
+              ),
+            ),
+          if (l.history.isEmpty && l.mediaHistory.isEmpty)
             const Padding(
               padding: EdgeInsets.all(30),
               child: Column(

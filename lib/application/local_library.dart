@@ -7,6 +7,7 @@ import '../core/image_engine.dart';
 import '../platform/file_access.dart';
 import 'editor_settings.dart';
 import 'editor_serialization.dart';
+import 'media_library.dart';
 
 /// Two generations survive interrupted writes; no images or input paths here.
 class LibraryStore {
@@ -129,6 +130,8 @@ class LocalLibrary extends ChangeNotifier {
   OutputLocation? output;
   final List<SavedPreset> presets = [];
   final List<HistoryEntry> history = [];
+  final List<MediaPreset> mediaPresets = [];
+  final List<MediaHistoryRecord> mediaHistory = [];
   String? storageError;
   bool _disposed = false;
   static List<SavedPreset> get builtIns {
@@ -182,6 +185,32 @@ class LocalLibrary extends ChangeNotifier {
         );
       }
       output = locationFromJson(m['output']);
+      for (final value
+          in (m['mediaPresets'] is List ? m['mediaPresets'] as List : []).take(
+            100,
+          )) {
+        try {
+          mediaPresets.add(
+            MediaPreset.fromJson(Map<String, dynamic>.from(value as Map)),
+          );
+        } catch (_) {
+          /* One invalid preset cannot break existing image settings. */
+        }
+      }
+      for (final value
+          in (m['mediaHistory'] is List ? m['mediaHistory'] as List : []).take(
+            200,
+          )) {
+        try {
+          mediaHistory.add(
+            MediaHistoryRecord.fromJson(
+              Map<String, dynamic>.from(value as Map),
+            ),
+          );
+        } catch (_) {
+          /* Ignore only this invalid summary. */
+        }
+      }
       for (final value
           in (m['presets'] is List ? m['presets'] as List : []).take(100)) {
         if (value is Map &&
@@ -243,6 +272,8 @@ class LocalLibrary extends ChangeNotifier {
         'output': locationJson(output),
         'presets': presets.map((p) => p.toJson()).toList(),
         'history': history.map((h) => h.toJson()).toList(),
+        'mediaPresets': mediaPresets.map((p) => p.toJson()).toList(),
+        'mediaHistory': mediaHistory.map((h) => h.toJson()).toList(),
       });
       storageError = null;
     } catch (_) {

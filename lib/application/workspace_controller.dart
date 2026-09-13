@@ -62,7 +62,9 @@ class WorkspaceController extends ChangeNotifier {
   bool ascending = true;
   int page = 0;
   bool preparing = false;
-  bool get busy => importing || picking || preparing || queue.isRunning;
+  bool Function()? externalBusy;
+  bool get isWorking => importing || picking || preparing || queue.isRunning;
+  bool get busy => isWorking || (externalBusy?.call() ?? false);
   int get selectedCount =>
       assets.where((a) => a.selected && a.info != null).length;
   List<ImageAsset> get visibleAssets {

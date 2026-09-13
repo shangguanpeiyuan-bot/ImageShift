@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../application/workspace_controller.dart';
+import '../application/media_workspace_controller.dart';
+import 'pages/media_workbench_page.dart';
 import '../platform/file_access.dart';
 import 'pages/home_page.dart';
 import 'pages/results_page.dart';
@@ -23,11 +25,20 @@ class WorkspaceShell extends StatefulWidget {
 
 class _WorkspaceShellState extends State<WorkspaceShell> {
   late final c = widget.controller ?? WorkspaceController();
+  late final media = MediaWorkspaceController(
+    files: c.files,
+    library: c.library,
+    externalBusy: () => c.isWorking || c.previewLoading,
+  );
+  late final previousExternalBusy = c.externalBusy;
   String version = '';
   bool dragging = false;
   @override
   void initState() {
     super.initState();
+    final previous = previousExternalBusy;
+    c.externalBusy = () => media.isWorking || (previous?.call() ?? false);
+    media.initialize();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final l = c.library;
       if (l != null && !l.welcomed && mounted) {
@@ -39,7 +50,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
             child: AlertDialog(
               title: const Text('欢迎使用 ImageShift'),
               content: const Text(
-                '图片只在本机处理，永不覆盖原图。\n\n选择图片，设置参数，然后保存到你选择的位置。历史仅保存任务摘要，你可随时在设置中关闭。',
+                '媒体只在本机处理，永不覆盖原文件。\n\n导入文件，设置参数，然后保存到你选择的位置。历史仅保存任务摘要，你可随时在设置中关闭。',
               ),
               actions: [
                 FilledButton(
@@ -65,6 +76,8 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
 
   @override
   void dispose() {
+    c.externalBusy = previousExternalBusy;
+    media.dispose();
     if (widget.controller == null) c.dispose();
     super.dispose();
   }
@@ -90,7 +103,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: c,
+    listenable: Listenable.merge([c, media]),
     builder: (context, _) {
       final colors = Theme.of(context).colorScheme;
       return LayoutBuilder(
@@ -100,13 +113,25 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
               box.maxWidth >= 800;
           final wideRail = box.maxWidth >= 1180;
           final body = switch (c.page) {
-            0 => HomePage(controller: c, onTool: _tool),
+            0 => HomePage(
+              controller: c,
+              onTool: _tool,
+              onImportMedia: () {
+                c.navigate(8);
+                media.pick();
+              },
+            ),
             1 => WorkbenchPage(controller: c),
             2 => HomePage(controller: c, onTool: _tool, toolsOnly: true),
             3 => ResultsPage(controller: c),
             5 => HistoryPage(controller: c),
             6 => PreferencesPage(controller: c),
-            7 => PresetsPage(controller: c),
+            7 => PresetsPage(controller: c, media: media),
+            8 => MediaWorkbenchPage(
+              controller: media,
+              onHistory: () => c.navigate(5),
+              onPresets: () => c.navigate(7),
+            ),
             _ => AboutPage(version: version),
           };
           Widget content = Column(
@@ -140,6 +165,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
                                 '处理历史',
                                 '设置',
                                 '预设',
+                                '媒体工作台',
                               ][c.page]
                             : 'ImageShift',
                         style: Theme.of(context).textTheme.titleMedium,
@@ -206,7 +232,8 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
               onDragExited: (_) => setState(() => dragging = false),
               onDragDone: (details) {
                 setState(() => dragging = false);
-                c.importFiles(
+                if (c.page == 0) c.navigate(8);
+                (c.page == 8 ? media.importFiles : c.importFiles)(
                   details.files
                       .map((f) => ImportedFile(f.path, f.name))
                       .toList(),
@@ -238,7 +265,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
                                 ),
                                 const SizedBox(height: 18),
                                 Text(
-                                  '松开以添加图片',
+                                  c.page == 8 ? '松开以添加本地媒体' : '松开以添加图片',
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineMedium,
@@ -258,22 +285,33 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
               const SingleActivator(
                 LogicalKeyboardKey.keyO,
                 control: true,
-              ): () =>
-                  _shortcut(c.pickImages),
+              ): () => _shortcut(() async {
+                if (c.page == 0) c.navigate(8);
+                await (c.page == 8 ? media.pick : c.pickImages)();
+              }),
               const SingleActivator(
                 LogicalKeyboardKey.keyA,
                 control: true,
-              ): () =>
-                  _shortcut(() => c.selectAll(true)),
+              ): () => _shortcut(() {
+                if (c.page != 8) c.selectAll(true);
+              }),
               const SingleActivator(LogicalKeyboardKey.delete): () =>
-                  _shortcut(c.removeSelected),
+                  _shortcut(() {
+                    if (c.page != 8) c.removeSelected();
+                  }),
               const SingleActivator(
                 LogicalKeyboardKey.enter,
                 control: true,
               ): () =>
-                  _shortcut(c.start),
+                  _shortcut(c.page == 8 ? media.start : c.start),
               const SingleActivator(LogicalKeyboardKey.escape): () =>
-                  _shortcut(() => c.selectAll(false)),
+                  _shortcut(() {
+                    if (c.page == 8) {
+                      media.cancel();
+                    } else {
+                      c.selectAll(false);
+                    }
+                  }),
             },
             child: Focus(
               autofocus: true,
@@ -295,13 +333,13 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
                       ? null
                       : NavigationBar(
                           selectedIndex: switch (c.page) {
-                            2 => 1,
+                            8 => 1,
                             5 => 2,
                             6 => 3,
                             _ => 0,
                           },
                           onDestinationSelected: (i) =>
-                              c.navigate([0, 2, 5, 6][i]),
+                              c.navigate([0, 8, 5, 6][i]),
                           destinations: const [
                             NavigationDestination(
                               icon: Icon(Icons.home_outlined),
@@ -309,8 +347,8 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
                               label: '首页',
                             ),
                             NavigationDestination(
-                              icon: Icon(Icons.grid_view_outlined),
-                              label: '工具',
+                              icon: Icon(Icons.perm_media_outlined),
+                              label: '媒体',
                             ),
                             NavigationDestination(
                               icon: Icon(Icons.history),
@@ -345,13 +383,14 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
     final colors = Theme.of(context).colorScheme;
     const navigation = [
       (Icons.home_outlined, '首页'),
-      (Icons.swap_horiz, '转换 / 批量'),
+      (Icons.swap_horiz, '图片转换'),
       (Icons.grid_view_outlined, '图片工具'),
       (Icons.task_alt, '任务与结果'),
       (Icons.info_outline, '关于'),
       (Icons.history, '处理历史'),
       (Icons.settings_outlined, '设置'),
       (Icons.bookmarks_outlined, '预设'),
+      (Icons.perm_media_outlined, '媒体工作台'),
     ];
     return Container(
       width: wide ? 206 : 76,
@@ -394,7 +433,7 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
           Expanded(
             child: ListView(
               children: [
-                for (var i = 0; i < navigation.length; i++)
+                for (final i in [0, 8, 1, 2, 3, 5, 7, 6, 4])
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: wide ? 12 : 10,
