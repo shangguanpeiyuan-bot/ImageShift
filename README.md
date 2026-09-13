@@ -49,7 +49,7 @@ Android 的 Kotlin 增量编译已关闭，以规避本机包缓存与工程跨�
 
 Windows 运行需要完整构建目录中的 DLL/data，不能只复制 exe。本机产物在 artifacts/phase-d/dist：ImageShift-v1.0.0-Windows-Setup.exe（当前用户安装，含开始菜单、卸载、可选桌面快捷方式）及 ImageShift-v1.0.0-Windows-x64.zip。无需 Flutter SDK。安装器尚无 Authenticode 签名；当前不提供 GitHub 下载承诺。
 
-Windows 打包脚本为 tool/package_windows.ps1，传入实际 Inno Setup ISCC.exe 与 Visual Studio 可再分发 CRT 目录，自动包含完整 Release 和 DLL。Android 构建不再回退到 debug signing；需要使用用户确认的仓库外签名密钥通过 apksigner 签名并验证后，才生成可发行的 ImageShift-v1.0.0-Android.apk。签名、项目许可与 GitHub 登录仍待确定。
+Windows 打包脚本为 tool/package_windows.ps1，传入实际 Inno Setup ISCC.exe 与 Visual Studio 可再分发 CRT 目录，自动包含完整 Release 和 DLL。Android 构建不再回退到 debug signing；需要使用用户确认的仓库外签名密钥通过 apksigner 签名并验证后，才生成可发行的 ImageShift-v1.0.0-Android.apk。GitHub 登录及源码 push 已成功；签名和项目许可仍待确定。
 
 ## 结构
 

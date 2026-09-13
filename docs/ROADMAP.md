@@ -32,4 +32,4 @@
 - **交付物**：完整测试报告、Android Release APK、完整 Windows Release 应用、Windows Installer、真实 README/许可证/依赖声明、Git 提交与 push、v1.0.0 GitHub Release 及安装附件。
 - **验收条件**：APK/Windows 构建真实成功并核实产物，Android 签名策略明确；Installer 有开始菜单/卸载/可选快捷方式且不需要 Flutter SDK；Release 附件为真实构建；无敏感内容提交，无 force push。
 - **测试条件**：完整 analyze/test、双平台 Release Build、实际 UI/安装/启动/卸载验收、断网本地处理、数据安全和大图回归；Git 安全检查与发布附件校验。人工授权/签名/UAC 问题在实际步骤明确报告。
-- **当前状态**：进行中。Windows Release、完整 ZIP、Installer 已真实生成，安装/启动/主题重启/卸载已验证；Android Release 编译成功但未签名。正式签名、项目许可证与 GitHub 写入登录仍待完成，不能称作已公开发行。见 [PHASE_D_REPORT.md](PHASE_D_REPORT.md)。
+- **当前状态**：进行中。Windows Release、完整 ZIP、Installer 已真实生成，安装/启动/主题重启/卸载已验证；Android Release 编译成功但未签名。GitHub 授权和源码 push 已成功。正式签名、项目许可证与 GitHub Release 仍待完成，不能称作已公开发行。见 [PHASE_D_REPORT.md](PHASE_D_REPORT.md)。

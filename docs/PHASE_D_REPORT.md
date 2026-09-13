@@ -1,6 +1,6 @@
 # Phase D 实际进度与交付
 
-日期：2026-09-13。**D 尚未全部完成，不能宣称已经公开发布。** 已完成本地构建与 Windows 安装验收，剩余 Android 正式签名、项目许可证与 GitHub 发布登录。
+日期：2026-09-13。**D 尚未全部完成，不能宣称已经公开发布。** 已完成本地构建、Windows 安装验收和源码 push，剩余 Android 正式签名、项目许可证与 GitHub Release。
 
 ## 已执行
 
@@ -36,7 +36,7 @@ artifacts/phase-d：pub-get.log、analyze.log、test.log、windows-release.log�
 
 1. **项目许可证尚未选定**，没有擅自套用 MIT 或把依赖许可冒充整个项目许可。
 2. **Android 签名尚待用户确认**是否沿用已有密钥，或生成仓库外 ImageShift 专用密钥；密码/密钥不入 Git。正式发行前必须 apksigner 验证成功，并核实最终 Application ID/版本。
-3. GitHub 连接器可读取当前账号，git ls-remote 可读取现有空仓库；但本机 Git Credential Manager 没有可用于非交互 push 的凭据。需本人登录后才完成 push 与创建 v1.0.0 Release，上传已验证签名 APK 和安装器。不修改 origin，不 force push。
+3. GitHub 浏览器授权后，Credential Manager 登录进程退出 0，账号列表确认 shangguanpeiyuan-bot。随后 `git push -u origin main` 实际成功，源码提交 18193a2 已推送，main 跟踪 origin/main。此前缺凭据的错误属于授权前尝试，不代表本次授权失败。尚未创建 v1.0.0 Release；待签名和许可确定后上传验证过的 APK 与安装器。不修改 origin，不 force push。
 4. **Android 无真机或 AVD**，SAF、真实触摸/系统返回/缓存回收和实际手机内存仍未验收。此缺口不等于编译失败，亦不能称为设备测试通过。
 5. desktop_drop 旧 KGP 与 SDK XML 版本差异仍有非阻塞警告；未来 Flutter 升级须复查。Windows CRT 应用本地部署由发行者跟进安全更新。
 6. 8K 超过 24 MP 上限会明确拒绝。性能与格式变体限制见 C/A/B 报告；P2 文件夹/剪贴板/系统通知未实现，不作为 v1 已有能力。
